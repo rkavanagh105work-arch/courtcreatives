@@ -3,9 +3,24 @@ import { Resend } from 'resend';
 import * as fs from 'fs';
 import * as path from 'path';
 
+// Every field comes from the public form, so it's escaped before going into the
+// email HTML. Otherwise anyone could put their own links or markup into an
+// email that arrives looking like a genuine enquiry from the site.
+function escapeHtml(value: unknown): string {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 export async function POST(request: Request) {
   try {
-    const formData = await request.json();
+    const body = await request.json();
+    const formData: Record<string, string> = Object.fromEntries(
+      Object.entries(body).map(([key, value]) => [key, escapeHtml(value)])
+    );
 
     // Send email notification
     try {
@@ -129,6 +144,11 @@ export async function POST(request: Request) {
                   <div class="field">
                     <div class="label">Wedding Date</div>
                     <div class="value">${formattedDate}</div>
+                  </div>
+
+                  <div class="field">
+                    <div class="label">Package</div>
+                    <div class="value">${formData.package || 'Not sure yet'}</div>
                   </div>
 
                   <div class="field">

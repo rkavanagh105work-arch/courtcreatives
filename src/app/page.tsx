@@ -4,9 +4,9 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import {
   Instagram,
+  Facebook,
   X,
   Menu,
-  Send,
   MessageCircle,
   Package,
   FileText,
@@ -17,8 +17,25 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTiktok } from "@fortawesome/free-brands-svg-icons";
 import Link from "next/link";
-import { LegalLinks } from "@/components/LegalPage";
+import { FooterLinks } from "@/components/LegalPage";
+import {
+  EnquiryForm,
+  EnquiryProvider,
+  PackageCards,
+} from "@/components/enquiry";
+import { areas } from "@/lib/areas";
 import { site } from "@/lib/site";
+
+const TikTokIcon = ({ className }: { className?: string }) => (
+  <FontAwesomeIcon icon={faTiktok} className={className} />
+);
+
+// Profiles without a URL in site.ts are left out.
+const socialLinks = [
+  { name: "Instagram", href: site.social.instagram, Icon: Instagram },
+  { name: "TikTok", href: site.social.tiktok, Icon: TikTokIcon },
+  { name: "Facebook", href: site.social.facebook, Icon: Facebook },
+].filter((link) => link.href);
 
 // Areas covered, as stated in the first two FAQ answers. Structured data must
 // describe what's visible on the page, so "areaServed" is built from this list
@@ -43,43 +60,10 @@ const areasServed = {
   ],
 };
 
-// Package contents, transcribed from the original packages graphic so they're
-// readable by search engines and screen readers rather than locked in an image.
-const packages = [
-  {
-    name: "The Classic",
-    includes: [
-      "Capturing moments of bridal prep and ceremony",
-      "Gallery of raw video clips and stills",
-      "Content delivered within 24 hours",
-      "Up to 3 edited short videos for your social media platforms",
-    ],
-  },
-  {
-    name: "The Prestige",
-    includes: [
-      "Capturing footage of bridal prep, ceremony and drinks reception",
-      "Gallery of raw video clips and stills",
-      "Content delivered within 24–48 hours",
-      "One 2–3 minute highlight film",
-      "Up to 5 edited videos to post",
-    ],
-  },
-  {
-    name: "The Luxe",
-    includes: [
-      "Full day: wedding morning with bridal party, ceremony, speeches, dinner and evening",
-      "Gallery of raw video clips and stills",
-      "Content delivered within 24–48 hours",
-      "One 3–5 minute highlight film",
-      "Up to 8 videos to post",
-    ],
-  },
-];
-
-const faqs = [
+const faqs: { question: string; answer: string; showAreaLinks?: boolean }[] = [
   {
     question: "Where are you based and what areas do you cover?",
+    showAreaLinks: true,
     answer:
       "I'm based in Belfast and cover the whole of Northern Ireland — Antrim, Armagh, Down, Fermanagh, Londonderry and Tyrone. That includes venues right across Belfast, Lisburn, Bangor, Newry, Ballymena, Armagh, Enniskillen, Omagh, Derry~Londonderry and the Causeway Coast. Travel within Northern Ireland is included as standard, with a small travel fee only for the longest journeys.",
   },
@@ -201,24 +185,7 @@ const faqSchema = {
 
 const CourtCreativesWebsite = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
-  const [minDate, setMinDate] = useState("");
-  const [formData, setFormData] = useState({
-    fullName: "",
-    partnerName: "",
-    email: "",
-    phone: "",
-    weddingDate: "",
-    gettingReadyLocation: "",
-    ceremonyLocation: "",
-    receptionLocation: "",
-    additionalDetails: "",
-  });
-
-  useEffect(() => {
-    setMinDate(new Date().toISOString().split("T")[0]);
-  }, []);
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -278,70 +245,6 @@ const CourtCreativesWebsite = () => {
     };
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // Validate required fields
-    if (
-      !formData.fullName ||
-      !formData.email ||
-      !formData.weddingDate ||
-      !formData.gettingReadyLocation ||
-      !formData.ceremonyLocation ||
-      !formData.receptionLocation
-    ) {
-      alert("Please fill in all required fields marked with *");
-      return;
-    }
-
-    // Validate wedding date is not in the past
-    const selectedDate = new Date(formData.weddingDate);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    if (selectedDate < today) {
-      alert("Please select a future date for your wedding.");
-      return;
-    }
-
-    try {
-      // Submit to JotForm API
-      const response = await fetch("/api/submit-form", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (response.ok) {
-        setShowSuccessModal(true);
-        setFormData({
-          fullName: "",
-          partnerName: "",
-          email: "",
-          phone: "",
-          weddingDate: "",
-          gettingReadyLocation: "",
-          ceremonyLocation: "",
-          receptionLocation: "",
-          additionalDetails: "",
-        });
-      } else {
-        alert("There was an error submitting your form. Please try again.");
-      }
-    } catch (error) {
-      console.error("Error submitting form:", error);
-      alert("There was an error submitting your form. Please try again.");
-    }
-  };
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
     element?.scrollIntoView({ behavior: "smooth" });
@@ -399,24 +302,18 @@ const CourtCreativesWebsite = () => {
               </div>
 
               <div className="hidden md:flex items-center space-x-4 border-l border-gray-300 pl-6">
-                <a
-                  href="https://www.instagram.com/courtcreatives_/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="CourtCreatives on Instagram"
-                  className="text-gray-700 hover:text-rose-400 transition-colors cursor-pointer"
-                >
-                  <Instagram className="w-5 h-5" />
-                </a>
-                <a
-                  href="https://www.tiktok.com/@courtcreatives_"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="CourtCreatives on TikTok"
-                  className="text-gray-700 hover:text-rose-400 transition-colors cursor-pointer"
-                >
-                  <FontAwesomeIcon icon={faTiktok} className="w-5 h-5" />
-                </a>
+                {socialLinks.map(({ name, href, Icon }) => (
+                  <a
+                    key={name}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`CourtCreatives on ${name}`}
+                    className="text-gray-700 hover:text-rose-400 transition-colors cursor-pointer"
+                  >
+                    <Icon className="w-5 h-5" />
+                  </a>
+                ))}
               </div>
 
               <button
@@ -531,38 +428,7 @@ const CourtCreativesWebsite = () => {
           <h2 className="text-4xl md:text-7xl font-bold text-center mb-16 font-[family-name:var(--font-tangerine)] text-gray-800">
             Packages
           </h2>
-          <div className="grid gap-6 md:grid-cols-3 max-w-5xl mx-auto">
-            {packages.map((pkg) => (
-              <article
-                key={pkg.name}
-                className="bg-white p-6 md:p-8 rounded-lg shadow-lg flex flex-col"
-              >
-                <h3 className="text-4xl md:text-5xl text-center text-gray-800 mb-6 font-[family-name:var(--font-tangerine)]">
-                  {pkg.name}
-                </h3>
-                <ul className="space-y-3 text-gray-600 leading-relaxed">
-                  {pkg.includes.map((item) => (
-                    <li key={item} className="flex gap-3">
-                      <span
-                        aria-hidden="true"
-                        className="mt-2.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[#f8ced0]"
-                      />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </article>
-            ))}
-          </div>
-          <div className="mt-12 text-center space-y-2">
-            <p className="text-gray-700 font-light text-sm">
-              PACKAGES CAN BE TAILORED TO SUIT YOUR NEEDS
-            </p>
-            <p className="text-gray-700 font-light text-sm">
-              20% DEPOSIT REQUIRED UPON BOOKING. TRAVEL FEES MAY APPLY DEPENDING
-              ON LOCATION
-            </p>
-          </div>
+          <PackageCards />
         </div>
       </section>
 
@@ -736,7 +602,7 @@ const CourtCreativesWebsite = () => {
           </div>
           <div className="mt-12 text-center">
             <a
-              href="https://www.instagram.com/courtcreatives_/"
+              href={site.social.instagram}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center space-x-2 bg-[#f8ced0] text-white font-semibold px-8 py-4 rounded-full hover:bg-[#f5b8bb] transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 cursor-pointer"
@@ -796,6 +662,32 @@ const CourtCreativesWebsite = () => {
                       <p className="px-5 md:px-6 pb-5 md:pb-6 text-sm md:text-base text-gray-600 leading-relaxed">
                         {faq.answer}
                       </p>
+                      {faq.showAreaLinks && (
+                        <div className="px-5 md:px-6 pb-5 md:pb-6">
+                          <p className="text-sm md:text-base text-gray-700 mb-3">
+                            See what a wedding looks like with me in{" "}
+                            <Link
+                              href="/areas"
+                              className="underline hover:text-rose-400 transition-colors"
+                            >
+                              each area I cover
+                            </Link>
+                            :
+                          </p>
+                          <ul className="flex flex-wrap gap-2">
+                            {areas.map((area) => (
+                              <li key={area.slug}>
+                                <Link
+                                  href={`/areas/${area.slug}`}
+                                  className="inline-block bg-white text-sm text-gray-700 px-3 py-1.5 rounded-full shadow-sm hover:text-rose-400 hover:shadow-md transition-all duration-300"
+                                >
+                                  {area.name}
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -813,178 +705,21 @@ const CourtCreativesWebsite = () => {
           <h2 className="text-4xl md:text-7xl font-bold text-center mb-16 font-[family-name:var(--font-tangerine)] text-gray-800">
             Get In Touch
           </h2>
-          <div className="bg-[#fff6f3] p-8 md:p-12 rounded-lg shadow-xl">
-            <div className="space-y-6">
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <label htmlFor="fullName" className="block text-gray-700 mb-2 font-normal">
-                    Full Name *
-                  </label>
-                  <input
-                    type="text"
-                    id="fullName"
-                    name="fullName"
-                    autoComplete="name"
-                    value={formData.fullName}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-rose-400 transition-colors"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="partnerName" className="block text-gray-700 mb-2 font-normal">
-                    Partner&apos;s Name
-                  </label>
-                  <input
-                    type="text"
-                    id="partnerName"
-                    name="partnerName"
-                    value={formData.partnerName}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-rose-400 transition-colors"
-                  />
-                </div>
-              </div>
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <label htmlFor="email" className="block text-gray-700 mb-2 font-normal">
-                    Email Address *
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    autoComplete="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-rose-400 transition-colors"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="phone" className="block text-gray-700 mb-2 font-normal">
-                    Phone Number
-                  </label>
-                  <input
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    autoComplete="tel"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-rose-400 transition-colors"
-                  />
-                </div>
-              </div>
-              <div>
-                <label htmlFor="weddingDate" className="block text-gray-700 mb-2 font-normal">
-                  Wedding Date *
-                </label>
-                <input
-                  type="date"
-                  id="weddingDate"
-                  name="weddingDate"
-                  value={formData.weddingDate}
-                  onChange={handleChange}
-                  required
-                  min={minDate}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-rose-400 transition-colors cursor-pointer"
-                />
-              </div>
-              <div>
-                <label htmlFor="gettingReadyLocation" className="block text-gray-700 mb-2 font-normal">
-                  Location of Where You Will Be Getting Ready *
-                </label>
-                <input
-                  type="text"
-                  id="gettingReadyLocation"
-                  name="gettingReadyLocation"
-                  value={formData.gettingReadyLocation}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-rose-400 transition-colors"
-                />
-              </div>
-              <div>
-                <label htmlFor="ceremonyLocation" className="block text-gray-700 mb-2 font-normal">
-                  Ceremony Location *
-                </label>
-                <input
-                  type="text"
-                  id="ceremonyLocation"
-                  name="ceremonyLocation"
-                  value={formData.ceremonyLocation}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-rose-400 transition-colors"
-                />
-              </div>
-              <div>
-                <label htmlFor="receptionLocation" className="block text-gray-700 mb-2 font-normal">
-                  Reception Location *
-                </label>
-                <input
-                  type="text"
-                  id="receptionLocation"
-                  name="receptionLocation"
-                  value={formData.receptionLocation}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-rose-400 transition-colors"
-                />
-              </div>
-              <div>
-                <label htmlFor="additionalDetails" className="block text-gray-700 mb-2 font-normal">
-                  Additional Details or Requests
-                </label>
-                <textarea
-                  id="additionalDetails"
-                  name="additionalDetails"
-                  value={formData.additionalDetails}
-                  onChange={handleChange}
-                  rows={5}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-rose-400 transition-colors resize-none"
-                ></textarea>
-              </div>
-              <button
-                onClick={handleSubmit}
-                className="w-full bg-[#f8ced0] text-white font-semibold py-4 rounded-lg hover:bg-[#f5b8bb] transition-colors duration-300 flex items-center justify-center space-x-2 shadow-lg cursor-pointer"
-              >
-                <Send className="w-5 h-5" />
-                <span>Send Enquiry</span>
-              </button>
-              <p className="text-center text-sm text-gray-500 font-light">
-                Your details are only used to reply to your enquiry. See the{" "}
-                <Link
-                  href="/privacy-policy"
-                  className="underline hover:text-rose-400 transition-colors"
-                >
-                  Privacy Policy
-                </Link>
-                .
-              </p>
-            </div>
-          </div>
+          <EnquiryForm />
 
-          <div className="mt-12 flex justify-center space-x-8">
-            <a
-              href="https://www.instagram.com/courtcreatives_/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center space-x-2 text-gray-700 hover:text-rose-400 transition-colors cursor-pointer"
-            >
-              <Instagram className="w-6 h-6" />
-              <span>Instagram</span>
-            </a>
-            <a
-              href="https://www.tiktok.com/@courtcreatives_"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center space-x-2 text-gray-700 hover:text-rose-400 transition-colors cursor-pointer"
-            >
-              <FontAwesomeIcon icon={faTiktok} className="w-6 h-6" />
-              <span>TikTok</span>
-            </a>
+          <div className="mt-12 flex flex-wrap justify-center gap-x-8 gap-y-4">
+            {socialLinks.map(({ name, href, Icon }) => (
+              <a
+                key={name}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center space-x-2 text-gray-700 hover:text-rose-400 transition-colors cursor-pointer"
+              >
+                <Icon className="w-6 h-6" />
+                <span>{name}</span>
+              </a>
+            ))}
           </div>
         </div>
       </section>
@@ -998,7 +733,7 @@ const CourtCreativesWebsite = () => {
           <p className="mt-2 font-light">
             Creating beautiful wedding memories, one frame at a time
           </p>
-          <LegalLinks />
+          <FooterLinks />
         </div>
       </footer>
 
@@ -1010,46 +745,15 @@ const CourtCreativesWebsite = () => {
       >
         <MessageCircle className="w-6 h-6" />
       </button>
-
-      {/* Success Modal */}
-      {showSuccessModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 transform transition-all">
-            <div className="text-center">
-              <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-[#f8ced0] mb-4">
-                <svg
-                  className="h-8 w-8 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-2xl font-[family-name:var(--font-tangerine)] text-gray-900 mb-2">
-                Thank You!
-              </h3>
-              <p className="text-gray-600 mb-6 leading-relaxed">
-                Your enquiry has been successfully submitted. We&apos;ll get
-                back to you within 24-48 hours.
-              </p>
-              <button
-                onClick={() => setShowSuccessModal(false)}
-                className="bg-[#f8ced0] text-white font-semibold px-8 py-3 rounded-full hover:bg-[#f5b8bb] transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
 
-export default CourtCreativesWebsite;
+// The provider lets the package cards pre-select a package in the enquiry form.
+export default function Home() {
+  return (
+    <EnquiryProvider>
+      <CourtCreativesWebsite />
+    </EnquiryProvider>
+  );
+}

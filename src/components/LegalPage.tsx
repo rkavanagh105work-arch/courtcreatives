@@ -14,26 +14,7 @@ export default function LegalPage({
 }>) {
   return (
     <div className="min-h-screen bg-[#fff6f3] text-gray-700">
-      <header className="bg-white border-b">
-        <div className="max-w-4xl mx-auto px-4 h-20 flex items-center justify-between">
-          <Link href="/" aria-label="CourtCreatives home">
-            <Image
-              src="/logo.png"
-              alt="CourtCreatives Logo"
-              width={112}
-              height={112}
-              className="h-28 w-auto"
-              priority
-            />
-          </Link>
-          <Link
-            href="/"
-            className="text-gray-700 hover:text-rose-400 transition-colors duration-300 font-light tracking-wide"
-          >
-            ← Back to site
-          </Link>
-        </div>
-      </header>
+      <SiteHeader />
 
       <main className="max-w-3xl mx-auto px-4 py-16">
         <h1 className="text-5xl md:text-7xl font-bold text-center mb-4 font-[family-name:var(--font-tangerine)] text-gray-800">
@@ -52,6 +33,33 @@ export default function LegalPage({
   );
 }
 
+// Logo linking home and a way back to the main site. Shared by the legal pages
+// and the area pages.
+export function SiteHeader() {
+  return (
+    <header className="bg-white border-b">
+      <div className="max-w-4xl mx-auto px-4 h-20 flex items-center justify-between">
+        <Link href="/" aria-label="CourtCreatives home">
+          <Image
+            src="/logo.png"
+            alt="CourtCreatives Logo"
+            width={112}
+            height={112}
+            className="h-28 w-auto"
+            priority
+          />
+        </Link>
+        <Link
+          href="/"
+          className="text-gray-700 hover:text-rose-400 transition-colors duration-300 font-light tracking-wide"
+        >
+          ← Back to site
+        </Link>
+      </div>
+    </header>
+  );
+}
+
 export function LegalFooter() {
   return (
     <footer className="bg-white py-8 px-4 border-t">
@@ -62,18 +70,24 @@ export function LegalFooter() {
         <p className="mt-2 font-light">
           Creating beautiful wedding memories, one frame at a time
         </p>
-        <LegalLinks />
+        <FooterLinks />
       </div>
     </footer>
   );
 }
 
-export function LegalLinks() {
+export function FooterLinks() {
   return (
     <nav
-      aria-label="Legal"
-      className="mt-4 flex justify-center gap-6 text-sm font-light"
+      aria-label="Footer"
+      className="mt-4 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm font-light"
     >
+      <Link
+        href="/areas"
+        className="hover:text-rose-400 transition-colors duration-300"
+      >
+        Areas I Cover
+      </Link>
       <Link
         href="/privacy-policy"
         className="hover:text-rose-400 transition-colors duration-300"

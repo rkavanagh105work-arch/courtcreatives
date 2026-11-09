@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 
 export default function PrivacyPolicyPage() {
   return (
-    <LegalPage title="Privacy Policy" lastUpdated="3 October 2026">
+    <LegalPage title="Privacy Policy" lastUpdated="9 November 2026">
       <h2>Who I am</h2>
       <p>
         CourtCreatives is a wedding content creation business run by Courtney,
@@ -150,8 +150,9 @@ export default function PrivacyPolicyPage() {
         your information to third-party font providers.
       </p>
       <p>
-        The site links to my Instagram and TikTok accounts. If you follow those
-        links, Instagram and TikTok&apos;s own privacy policies apply.
+        The site links to my Instagram, TikTok and Facebook accounts. If you
+        follow those links, Instagram, TikTok and Facebook&apos;s own privacy
+        policies apply.
       </p>
 
       <h2>Your rights</h2>
